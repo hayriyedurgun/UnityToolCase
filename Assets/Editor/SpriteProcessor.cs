@@ -20,5 +20,8 @@ public class SpriteProcessor : AssetPostprocessor
             importer.textureType = TextureImporterType.Sprite;
         }
 
+        importer.maxTextureSize = 256;
+        importer.mipmapEnabled = false;
+        importer.filterMode = UnityEngine.FilterMode.Bilinear;
     }
 }
