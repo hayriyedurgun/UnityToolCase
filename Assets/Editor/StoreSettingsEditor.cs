@@ -138,9 +138,9 @@ public class StoreSettingsEditor : UnityEditor.Editor
         for (int i = 1; i < lines.Length; i++)
         {
             var cells = lines[i].Split(',');
-            if (cells.Length < 2)
+            if (cells.Length == 1)
             {
-                Debug.LogError("Cell size incompetable in CVS!");
+                Debug.LogError("Cell size incompetable in spreadsheet. Please check the spreadsheet.");
             }
             else
             {
@@ -149,7 +149,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
                 if (!int.TryParse(cells[1], out price))
                 {
-                    Debug.LogError($"Unexpected input at line {i} cell 1!!");
+                    Debug.LogError($"Unexpected input at line: {i} cell: 1! Please check the spreadsheet.");
                     continue;
                 }
 
@@ -157,12 +157,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
                 path = $"{settings.IconPath}/{item.Name}.png";
 
                 var sprite = AssetDatabase.LoadAssetAtPath(path, typeof(Sprite)) as Sprite;
-                if (sprite == null)
-                {
-                    Debug.LogError($"Unexpected! Sprite could not found. Sprite name: {item.Name}");
-                    continue;
-                }
-
+            
                 item.Id = settings.Items.Count;
                 item.Icon = sprite;
 
