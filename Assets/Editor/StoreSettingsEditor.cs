@@ -42,48 +42,46 @@ public class StoreSettingsEditor : UnityEditor.Editor
             var model = serializedProperty.FindPropertyRelative("Model");
             var controller = serializedProperty.FindPropertyRelative("AnimatorController");
 
-            EditorGUILayout.BeginHorizontal("box");
+            GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout);
+            foldoutStyle.normal.textColor = item.IsValid ? Color.white : Color.red;
+
+            serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, $"Item#{item.Id}", foldoutStyle);
+
+            if (serializedProperty.isExpanded)
             {
-                EditorGUILayout.BeginVertical();
+                EditorGUILayout.BeginHorizontal("box");
                 {
-                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.BeginVertical();
                     {
-
-                        var style = new GUIStyle(GUI.skin.label);
-                        style.richText = true;
-                        style.fontStyle = FontStyle.Bold;
-                        EditorGUILayout.LabelField($@"Item#{item.Id}", style);
-
                         if (!item.IsValid)
                         {
                             EditorGUILayout.HelpBox(item.GetValidationStr(), MessageType.Error);
                         }
-                    }
-                    EditorGUILayout.EndHorizontal();
 
-                    EditorGUILayout.BeginHorizontal();
-                    {
-                        icon.objectReferenceValue = EditorGUILayout.ObjectField(icon.objectReferenceValue, typeof(Sprite), false, GUILayout.Width(80), GUILayout.Height(80));
-
-                        EditorGUILayout.BeginVertical();
+                        EditorGUILayout.BeginHorizontal();
                         {
-                            GUI.enabled = false;
-                            EditorGUILayout.PropertyField(id);
-                            GUI.enabled = true;
+                            icon.objectReferenceValue = EditorGUILayout.ObjectField(icon.objectReferenceValue, typeof(Sprite), false, GUILayout.Width(80), GUILayout.Height(80));
 
-                            EditorGUILayout.PropertyField(name);
-                            EditorGUILayout.PropertyField(price);
-                            EditorGUILayout.PropertyField(material);
-                            EditorGUILayout.PropertyField(model);
-                            EditorGUILayout.PropertyField(controller);
+                            EditorGUILayout.BeginVertical();
+                            {
+                                GUI.enabled = false;
+                                EditorGUILayout.PropertyField(id);
+                                GUI.enabled = true;
+
+                                EditorGUILayout.PropertyField(name);
+                                EditorGUILayout.PropertyField(price);
+                                EditorGUILayout.PropertyField(material);
+                                EditorGUILayout.PropertyField(model);
+                                EditorGUILayout.PropertyField(controller);
+                            }
+                            EditorGUILayout.EndVertical();
                         }
-                        EditorGUILayout.EndVertical();
+                        EditorGUILayout.EndHorizontal();
                     }
-                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndVertical();
                 }
-                EditorGUILayout.EndVertical();
+                EditorGUILayout.EndHorizontal();
             }
-            EditorGUILayout.EndHorizontal();
         }
 
         if (GUILayout.Button("Read CVS"))
