@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEditor.Animations;
 using UnityEngine;
 
+[Serializable]
 public class ModelInfo
 {
     public GameObject Prefab { get; }
@@ -25,9 +26,6 @@ public class ModelMaterialPair
     private Material m_Material;
     private RuntimeAnimatorController m_AnimatorController;
 
-    public bool IsValid => m_Model != null && 
-                           m_Material != null &&
-                           m_AnimatorController != null;
 
     public ModelMaterialPair(StoreSettingsItem item)
     {

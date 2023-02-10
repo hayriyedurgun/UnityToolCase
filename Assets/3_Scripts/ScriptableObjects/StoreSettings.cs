@@ -9,7 +9,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "StoreSettings", menuName = "ScriptableObjects/StoreSettings")]
 public class StoreSettings : ScriptableObject
 {
-
     [HideInInspector]
     public List<ModelInfo> ModelInfos = new List<ModelInfo>();
 
