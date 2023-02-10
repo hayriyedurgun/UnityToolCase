@@ -12,22 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8800b15505b96404181f91d91d64e076, type: 3}
   m_Name: StoreSettings
   m_EditorClassIdentifier: 
+  ModelInfos: []
   Items:
   - Id: 0
     Name: test
     Price: 700
     Icon: {fileID: 21300000, guid: 96372ec393320e74481dee181a5d361e, type: 3}
     Material: {fileID: 2100000, guid: cd498a1a8b711464ebdc6816978beb29, type: 2}
-    Model: {fileID: 100078, guid: 461413943bab6ef40aa2a33f18380180, type: 3}
+    Model: {fileID: 100022, guid: 2c972239f8d58d944a0e1cff0da4ac22, type: 3}
     AnimatorController: {fileID: 9100000, guid: 8b9a677f24793ba45bdc27a1dab7745e,
       type: 2}
   - Id: 1
     Name: test1
     Price: 750
     Icon: {fileID: 21300000, guid: fc0202d60bea81645a560e11ac515b32, type: 3}
-    Material: {fileID: 2100000, guid: ba0f96cbb74387a4b8bac35af80b2748, type: 2}
-    Model: {fileID: 100078, guid: 461413943bab6ef40aa2a33f18380180, type: 3}
-    AnimatorController: {fileID: 9100000, guid: 8b9a677f24793ba45bdc27a1dab7745e,
+    Material: {fileID: 2100000, guid: 9ba57390949fee44591bf1f4b696840b, type: 2}
+    Model: {fileID: 100022, guid: 2c972239f8d58d944a0e1cff0da4ac22, type: 3}
+    AnimatorController: {fileID: 9100000, guid: 8d382404ede7e1944970218b83a887c8,
       type: 2}
   - Id: 2
     Name: Guy

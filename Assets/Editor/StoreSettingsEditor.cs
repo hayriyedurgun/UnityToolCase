@@ -45,41 +45,44 @@ public class StoreSettingsEditor : UnityEditor.Editor
             EditorGUILayout.BeginHorizontal("box");
             {
                 EditorGUILayout.BeginVertical();
-
-                EditorGUILayout.BeginHorizontal();
                 {
-                    var style = new GUIStyle(GUI.skin.label);
-                    style.richText = true;
-                    style.fontStyle = FontStyle.Bold;
-                    EditorGUILayout.LabelField($@"Item#{item.Id}", style);
-
-                    if (!item.IsValid)
+                    EditorGUILayout.BeginHorizontal();
                     {
-                        var content = EditorGUIUtility.IconContent("console.erroricon.sml");
-                        var s1 = new GUIStyle(GUI.skin.label);
-                        s1.alignment = TextAnchor.MiddleRight;
 
-                        GUILayout.Label(content, s1);
-                        GUILayout.Label(item.GetValidationStr());
+                        var style = new GUIStyle(GUI.skin.label);
+                        style.richText = true;
+                        style.fontStyle = FontStyle.Bold;
+                        EditorGUILayout.LabelField($@"Item#{item.Id}", style);
+
+                        if (!item.IsValid)
+                        {
+                            EditorGUILayout.HelpBox(item.GetValidationStr(), MessageType.Error);
+                        }
                     }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        icon.objectReferenceValue = EditorGUILayout.ObjectField(icon.objectReferenceValue, typeof(Sprite), false, GUILayout.Width(80), GUILayout.Height(80));
+
+                        EditorGUILayout.BeginVertical();
+                        {
+                            GUI.enabled = false;
+                            EditorGUILayout.PropertyField(id);
+                            GUI.enabled = true;
+
+                            EditorGUILayout.PropertyField(name);
+                            EditorGUILayout.PropertyField(price);
+                            EditorGUILayout.PropertyField(material);
+                            EditorGUILayout.PropertyField(model);
+                            EditorGUILayout.PropertyField(controller);
+                        }
+                        EditorGUILayout.EndVertical();
+                    }
+                    EditorGUILayout.EndHorizontal();
                 }
-
-                EditorGUILayout.EndHorizontal();
-
-                GUI.enabled = false;
-                EditorGUILayout.PropertyField(id);
-                GUI.enabled = true;
-
-                EditorGUILayout.PropertyField(name);
-                EditorGUILayout.PropertyField(price);
-                EditorGUILayout.PropertyField(icon);
-                EditorGUILayout.PropertyField(material);
-                EditorGUILayout.PropertyField(model);
-                EditorGUILayout.PropertyField(controller);
-
                 EditorGUILayout.EndVertical();
             }
-
             EditorGUILayout.EndHorizontal();
         }
 
@@ -88,13 +91,12 @@ public class StoreSettingsEditor : UnityEditor.Editor
             ReadCvs();
         }
 
-        if (settings.Items.Any(x=> !x.IsValid))
+        if (settings.Items.Any(x => !x.IsValid))
         {
             GUI.enabled = false;
         }
         if (GUILayout.Button("Apply"))
         {
-           
             var storeObj = GameObject.Find("Store");
             var store = storeObj.GetComponent<Store>();
             GameObject prefab;
@@ -121,11 +123,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
         {
             serializedObject.ApplyModifiedProperties();
         }
-    }
-
-    private void OnValidate()
-    {
-        //TODO: validate all of the StoreSettingsItems
     }
 
     private void ReadCvs()
@@ -221,6 +218,9 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
             //Set animator
             var animator = sceneObject.GetComponentInChildren<Animator>();
+            animator.applyRootMotion = false;
+            animator.updateMode = AnimatorUpdateMode.Normal;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             animator.runtimeAnimatorController = item.AnimatorController;
 
             prefab = PrefabUtility.SaveAsPrefabAsset(sceneObject, path);
