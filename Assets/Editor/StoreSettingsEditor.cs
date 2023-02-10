@@ -133,7 +133,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
         var settings = (target as StoreSettings);
         settings.Items.Clear();
 
-        var content = (TextAsset)Resources.Load("Test", typeof(TextAsset));
+        var content = (TextAsset)Resources.Load("Contents", typeof(TextAsset));
 
         StoreSettingsItem item;
         int price;
