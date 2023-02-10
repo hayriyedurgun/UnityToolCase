@@ -11,7 +11,7 @@ public class ModelInfo
 {
     public GameObject Prefab { get; }
     public ModelMaterialPair Pair { get; }
-    public string Name => Pair.ToString();
+    public string Name => Pair?.ToString() ?? string.Empty;
 
     public ModelInfo(ModelMaterialPair pair, GameObject prefab = null)
     {

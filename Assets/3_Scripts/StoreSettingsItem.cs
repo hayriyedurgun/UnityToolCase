@@ -14,11 +14,13 @@ public class StoreSettingsItem
     public GameObject Model;
     public RuntimeAnimatorController AnimatorController;
 
-    public bool IsValid => Model != null &&
-                           Material != null &&
-                           AnimatorController != null &&
+    public bool IsValid => IsPrefabValid &&
                            Icon != null &&
                            Price > 0;
+
+    public bool IsPrefabValid => Model != null &&
+                                 Material != null &&
+                                 AnimatorController != null;
 
     public string GetValidationStr()
     {

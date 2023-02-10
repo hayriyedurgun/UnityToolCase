@@ -17,8 +17,6 @@ using static UnityEditor.Progress;
 public class StoreSettingsEditor : UnityEditor.Editor
 {
     private SerializedProperty m_Items;
-    private bool m_IsValid;
-    private bool m_IsAllItemsValid;
 
     public void OnEnable()
     {
@@ -183,7 +181,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
         prefab = null;
         var pair = new ModelMaterialPair(item);
 
-        if (!item.IsValid)
+        if (!item.IsPrefabValid)
         {
             return false;
         }
@@ -200,7 +198,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
         {
             //create prefab
             var path = $"{settings.PrefabPath}/{pair}.prefab";
-
             var sceneObject = Instantiate(item.Model);
 
             //Set collider
@@ -212,7 +209,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
             collider.radius = .2f;
             collider.height = bounds.size.y;
 
-            sceneObject.name = pair.ToString();
 
             //Set materials
             var sharedMaterials = renderer.sharedMaterials;
@@ -235,6 +231,5 @@ public class StoreSettingsEditor : UnityEditor.Editor
         }
 
         return true;
-
     }
 }
