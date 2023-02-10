@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [System.Serializable]
@@ -22,5 +23,29 @@ public class Store : Singleton<Store>
     public void SelectItem(StoreItem item)
     {
         OnItemSelected?.Invoke(item);
+    }
+
+    public void UpdateItems(StoreSettingsItem item, GameObject prefab)
+    {
+        if (StoreItems.Any(x => x.Id == item.Id))
+        {
+            var storeItem = StoreItems.FirstOrDefault(x => x.Id == item.Id);
+
+            storeItem.Name = item.Name;
+            storeItem.Price = item.Price;
+            storeItem.Icon = item.Icon;
+            storeItem.Prefab = prefab;
+        }
+        else
+        {
+            var storeItem = new StoreItem();
+            storeItem.Id = item.Id;
+            storeItem.Name = item.Name;
+            storeItem.Price = item.Price;
+            storeItem.Icon = item.Icon;
+            storeItem.Prefab = prefab;
+
+            StoreItems.Add(storeItem);
+        }
     }
 }

@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
-using UnityEditor.TerrainTools;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 [CustomEditor(typeof(StoreSettings))]
 
@@ -19,7 +19,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
     {
         base.OnInspectorGUI();
 
-
         if (GUILayout.Button("Read CVS"))
         {
             ReadCvs();
@@ -28,10 +27,27 @@ public class StoreSettingsEditor : UnityEditor.Editor
         if (GUILayout.Button("Create"))
         {
             var settings = (StoreSettings)target;
-            //settings.Items.ForEach(x => Create(x));
-            CreatePrefab(settings.Items.First());
-            //SimpleCreate(settings.Items.First());
+            var storeObj = GameObject.Find("Store");
+            var store = storeObj.GetComponent<Store>();
+            GameObject prefab;
+
+            foreach (var item in settings.Items)
+            {
+                if (CanCreatePrefab(item, out prefab))
+                {
+                    store.UpdateItems(item, prefab);
+                }
+                else
+                {
+                    Debug.Log($"Unexpected! Prefab could not created for id: {item.Id}, name: {item.Name}");
+                }
+            }
         }
+    }
+
+    private void OnValidate()
+    {
+        //TODO: validate all of the StoreSettingsItems
     }
 
     private void ReadCvs()
@@ -45,10 +61,10 @@ public class StoreSettingsEditor : UnityEditor.Editor
         int price;
         string path;
 
-        var lines = content.text.Split(Environment.NewLine);
+        var lines = content.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
         {
-            var cells = lines[i].Split(",");
+            var cells = lines[i].Split(',');
             if (cells.Length < 2)
             {
                 Debug.LogError("Cell size incompetable in CVS!");
@@ -82,11 +98,18 @@ public class StoreSettingsEditor : UnityEditor.Editor
         }
     }
 
-    private GameObject CreatePrefab(StoreSettingsItem item)
+    private bool CanCreatePrefab(StoreSettingsItem item, out GameObject prefab)
     {
-        var settings = (target as StoreSettings);
+        prefab = null;
         var pair = new ModelMaterialPair(item);
-        GameObject prefab;
+
+        if (!pair.IsValid)
+        {
+            return false;
+        }
+
+        var settings = (target as StoreSettings);
+
         var name = pair.ToString();
 
         if (settings.ModelInfos.Any(x => x.Name == name))
@@ -130,6 +153,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
             settings.ModelInfos.Add(modelInfo);
         }
 
-        return prefab;
+        return true;
+
     }
 }
