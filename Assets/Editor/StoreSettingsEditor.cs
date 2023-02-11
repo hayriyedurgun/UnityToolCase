@@ -18,9 +18,8 @@ public class StoreSettingsEditor : UnityEditor.Editor
     private Store m_Store;
     private SerializedProperty m_Items;
     private StoreSettings m_Settings;
-    private bool m_IsScanUpdate;
 
-    private List<string> m_Icons = new List<string>();
+    private List<Sprite> m_Icons = new List<Sprite>();
     private List<string> m_Materials = new List<string>();
     private List<string> m_Models = new List<string>();
     private List<string> m_AnimationControllers = new List<string>();
@@ -260,11 +259,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
     private void Scan()
     {
-        if (m_IsScanUpdate)
-        {
-            return;
-        }
-
         string[] temp = AssetDatabase.GetAllAssetPaths();
         m_Icons.Clear();
         m_Materials.Clear();
@@ -301,7 +295,11 @@ public class StoreSettingsEditor : UnityEditor.Editor
             {
                 if (m_Settings.Items.Where(x => x.Icon != null).All(x => !x.Icon.name.Equals(fileName)))
                 {
-                    m_Icons.Add(s);
+                    var icon = AssetDatabase.LoadAssetAtPath(s, typeof(Sprite)) as Sprite;
+                    if (icon)
+                    {
+                        m_Icons.Add(icon);
+                    }
                 }
             }
 
@@ -323,8 +321,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
                 m_AnimationControllers.Add(s);
             }
         }
-
-        m_IsScanUpdate = true;
     }
 
     private void ShowReport()
@@ -338,14 +334,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
     public void Create(Material mat = null, GameObject model = null, AnimatorController controller = null, Sprite icon = null)
     {
-        if (mat != null ||
-            model != null ||
-            controller != null ||
-            icon != null)
-        {
-            m_IsScanUpdate = false;
-        }
-
         var item = new StoreSettingsItem();
         item.Id = m_Settings.Items.Count;
         item.Icon = icon;

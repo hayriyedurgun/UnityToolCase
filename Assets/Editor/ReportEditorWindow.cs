@@ -15,11 +15,11 @@ namespace Assets.Editor
         private List<string> m_Materials;
         private List<string> m_Models;
         private List<string> m_AnimationControllers;
-        private List<string> m_Icons;
+        private List<Sprite> m_Icons;
         private StoreSettingsEditor m_StoreEditor;
         private Vector2 m_ScrollPos;
 
-        public void Load(List<string> materials, List<string> models, List<string> animControllers, List<string> icons, StoreSettingsEditor storeEditor)
+        public void Load(List<string> materials, List<string> models, List<string> animControllers, List<Sprite> icons, StoreSettingsEditor storeEditor)
         {
             m_Materials = materials;
             m_Models = models;
@@ -39,14 +39,13 @@ namespace Assets.Editor
                     GUILayout.Label("Icons", EditorStyles.boldLabel);
 
                     EditorGUI.indentLevel++;
-                    foreach (var iconPath in m_Icons)
+                    foreach (var icon in m_Icons)
                     {
                         EditorGUILayout.BeginHorizontal("box");
                         {
-                            EditorGUILayout.LabelField(GetShortName(iconPath));
+                            EditorGUILayout.LabelField(icon.name);
                             if (GUILayout.Button("Create"))
                             {
-                                var icon = (Sprite)AssetDatabase.LoadAssetAtPath(iconPath, typeof(Sprite));
                                 m_StoreEditor.Create(icon: icon);
                                 this.Close();
                             }
