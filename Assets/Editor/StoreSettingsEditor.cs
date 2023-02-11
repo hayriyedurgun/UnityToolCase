@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Editor;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -16,6 +17,11 @@ public class StoreSettingsEditor : UnityEditor.Editor
     private Store m_Store;
     private SerializedProperty m_Items;
     private StoreSettings m_Settings;
+    private bool m_IsScanUpdate;
+
+    private List<string> m_Materials;
+    private List<string> m_Models;
+    private List<string> m_AnimationControllers;
 
     public void OnEnable()
     {
@@ -98,64 +104,12 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
         if (GUILayout.Button("Scan"))
         {
-            string[] temp = AssetDatabase.GetAllAssetPaths();
-            var iconResults = new List<string>();
-            var materialResults = new List<string>();
-            var modelResults = new List<string>();
-            var animationControllers = new List<string>();
+            Scan();
+        }
 
-            int startIndex;
-            int lastIndex;
-            int endIndex;
-
-            foreach (string s in temp)
-            {
-                if (!s.StartsWith("Assets/") || 
-                    (!s.Contains(".png") &&
-                    !s.Contains(".mat") && 
-                    !s.Contains(".prefab") &&
-                    !s.Contains(".controller")))
-                {
-                    continue;
-                }
-
-                startIndex = s.LastIndexOf("/");
-                lastIndex = s.LastIndexOf(".");
-                endIndex = lastIndex - startIndex - 1;
-
-                if (startIndex < 0 || endIndex < 0 || endIndex <= 0)
-                {
-                    continue;
-                }
-
-                var fileName = s.Substring(startIndex + 1, lastIndex - startIndex - 1);
-
-                if (s.Contains(".png"))
-                {
-                    if (m_Settings.Items.All(x => !x.Icon.name.Equals(fileName)))
-                    {
-                        iconResults.Add(s);
-                    }
-                }
-
-                else if (s.Contains(".mat") &&
-                        m_Settings.Items.Where(x => x.Material != null).All(x => !x.Material.name.Equals(fileName)))
-                {
-                    materialResults.Add(s);
-                }
-
-                else if (s.Contains(".prefab") &&
-                        m_Settings.Items.Where(x => x.IsPrefabValid).All(x => x.GetPotentialPrefabName() != s) &&
-                        s.Count(x => x == '_') >= 2)
-                {
-                    modelResults.Add(s);
-                }
-                else if (s.Contains(".controller") &&
-                    m_Settings.Items.Where(x => x.AnimatorController != null).All(x => !x.AnimatorController.name.Equals(fileName)))
-                {
-                    animationControllers.Add(s);
-                }
-            }
+        if (GUILayout.Button("Show Report"))
+        {
+            ShowReport();
         }
 
         if (m_Settings.Items.Any(x => !x.IsValid))
@@ -166,7 +120,6 @@ public class StoreSettingsEditor : UnityEditor.Editor
         {
             Apply();
         }
-
         if (m_Settings.Items.Any(x => !x.IsValid))
         {
             GUI.enabled = true;
@@ -295,4 +248,84 @@ public class StoreSettingsEditor : UnityEditor.Editor
         }
     }
 
+    private void Scan()
+    {
+        if (m_IsScanUpdate)
+        {
+            return;
+        }
+
+        string[] temp = AssetDatabase.GetAllAssetPaths();
+        var iconResults = new List<string>();
+        m_Materials = new List<string>();
+        m_Models = new List<string>();
+        m_AnimationControllers = new List<string>();
+
+        int startIndex;
+        int lastIndex;
+        int endIndex;
+
+        foreach (string s in temp)
+        {
+            if (!s.StartsWith("Assets/") ||
+                (!s.Contains(".png") &&
+                !s.Contains(".mat") &&
+                !s.Contains(".prefab") &&
+                !s.Contains(".controller")))
+            {
+                continue;
+            }
+
+            startIndex = s.LastIndexOf("/");
+            lastIndex = s.LastIndexOf(".");
+            endIndex = lastIndex - startIndex - 1;
+
+            if (startIndex < 0 || endIndex < 0 || endIndex <= 0)
+            {
+                continue;
+            }
+
+            var fileName = s.Substring(startIndex + 1, lastIndex - startIndex - 1);
+
+            if (s.Contains(".png"))
+            {
+                if (m_Settings.Items.All(x => !x.Icon.name.Equals(fileName)))
+                {
+                    iconResults.Add(s);
+                }
+            }
+
+            else if (s.Contains(".mat") &&
+                    m_Settings.Items.Where(x => x.Material != null).All(x => !x.Material.name.Equals(fileName)))
+            {
+                m_Materials.Add(s);
+            }
+
+            else if (s.Contains(".prefab") &&
+                    m_Settings.Items.Where(x => x.IsPrefabValid).All(x => x.GetPotentialPrefabName() != s) &&
+                    s.Count(x => x == '_') >= 2)
+            {
+                m_Models.Add(s);
+            }
+            else if (s.Contains(".controller") &&
+                m_Settings.Items.Where(x => x.AnimatorController != null).All(x => !x.AnimatorController.name.Equals(fileName)))
+            {
+                m_AnimationControllers.Add(s);
+            }
+        }
+
+        m_IsScanUpdate = true;
+    }
+
+    private void ShowReport()
+    {
+        var window = (ReportEditorWindow)EditorWindow.GetWindow(typeof(ReportEditorWindow));
+        if (!m_IsScanUpdate)
+        {
+            Scan();
+        }
+
+        window.Load(m_Materials, m_Models, m_AnimationControllers);
+        window.Show();
+    }
 }
