@@ -154,11 +154,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
         for (int i = 1; i < lines.Length; i++)
         {
             var cells = lines[i].Split(',');
-            if (cells.Length == 1)
-            {
-                Debug.LogError("Cell size incompetable in spreadsheet. Please check the spreadsheet.");
-            }
-            else
+            if (cells.Length > 1)
             {
                 item = new StoreSettingsItem();
                 item.Name = cells[0];
