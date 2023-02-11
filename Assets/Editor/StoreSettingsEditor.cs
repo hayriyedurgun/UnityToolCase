@@ -42,8 +42,9 @@ public class StoreSettingsEditor : UnityEditor.Editor
     {
         serializedObject.Update();
         EditorGUI.BeginChangeCheck();
+        var arraySize = m_Items.arraySize;
 
-        for (int i = 0; i < m_Items.arraySize; i++)
+        for (int i = 0; i < arraySize; i++)
         {
             var serializedProperty = m_Items.GetArrayElementAtIndex(i);
 
@@ -65,6 +66,8 @@ public class StoreSettingsEditor : UnityEditor.Editor
                 if (GUILayout.Button("\u2715", GUILayout.Width(22), GUILayout.Height(20)))
                 {
                     Remove(item);
+                    i--;
+                    arraySize--;
                 }
             }
             EditorGUILayout.EndHorizontal();
