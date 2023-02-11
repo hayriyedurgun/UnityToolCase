@@ -16,7 +16,7 @@ public class StoreSettingsItem
 
     public bool IsValid => IsPrefabValid &&
                            Icon != null &&
-                           Price > 0;
+                           Price >= 0;
 
     public bool IsPrefabValid => Model != null &&
                                  Material != null &&
