@@ -319,7 +319,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
             else if (s.Contains(".prefab") &&
                     m_Settings.Items.Where(x => x.IsPrefabValid).All(x => x.GetPotentialPrefabName() != s) &&
-                    s.Count(x => x == '_') >= 2)
+                    fileName.Count(x => x == '_') >= 2)
             {
                 m_Models.Add(s);
             }
