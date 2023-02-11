@@ -25,27 +25,15 @@ public class Store : Singleton<Store>
         OnItemSelected?.Invoke(item);
     }
 
-    public void UpdateItems(StoreSettingsItem item, GameObject prefab)
+    public void AddItem(StoreSettingsItem item, GameObject prefab)
     {
-        if (StoreItems.Any(x => x.Id == item.Id))
-        {
-            var storeItem = StoreItems.FirstOrDefault(x => x.Id == item.Id);
+        var storeItem = new StoreItem();
+        storeItem.Id = item.Id;
+        storeItem.Name = item.Name;
+        storeItem.Price = item.Price;
+        storeItem.Icon = item.Icon;
+        storeItem.Prefab = prefab;
 
-            storeItem.Name = item.Name;
-            storeItem.Price = item.Price;
-            storeItem.Icon = item.Icon;
-            storeItem.Prefab = prefab;
-        }
-        else
-        {
-            var storeItem = new StoreItem();
-            storeItem.Id = item.Id;
-            storeItem.Name = item.Name;
-            storeItem.Price = item.Price;
-            storeItem.Icon = item.Icon;
-            storeItem.Prefab = prefab;
-
-            StoreItems.Add(storeItem);
-        }
+        StoreItems.Add(storeItem);
     }
 }

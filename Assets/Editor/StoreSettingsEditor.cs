@@ -240,11 +240,20 @@ public class StoreSettingsEditor : UnityEditor.Editor
     {
         GameObject prefab;
 
+        m_Store.StoreItems.Clear();
+
         foreach (var item in m_Settings.Items)
         {
             if (CanCreatePrefab(item, out prefab))
             {
-                m_Store.UpdateItems(item, prefab);
+                var storeItem = new StoreItem();
+                storeItem.Id = item.Id;
+                storeItem.Name = item.Name;
+                storeItem.Price = item.Price;
+                storeItem.Icon = item.Icon;
+                storeItem.Prefab = prefab;
+
+                m_Store.StoreItems.Add(storeItem);
             }
             else
             {
