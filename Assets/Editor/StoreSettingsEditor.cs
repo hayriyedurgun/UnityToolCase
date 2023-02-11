@@ -6,34 +6,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
-using UnityEditor.Animations;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.Progress;
 
 [CustomEditor(typeof(StoreSettings))]
 
 public class StoreSettingsEditor : UnityEditor.Editor
 {
+    private bool m_IsInitialized;
+    private Store m_Store;
     private SerializedProperty m_Items;
+    private StoreSettings m_Settings;
 
     public void OnEnable()
     {
         m_Items = serializedObject.FindProperty("Items");
+        m_Settings = (target as StoreSettings);
+
+        if (!m_IsInitialized)
+        {
+            var storeObj = GameObject.Find("Store");
+            m_Store = storeObj.GetComponent<Store>();
+
+            m_IsInitialized = true;
+        }
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        var settings = (target as StoreSettings);
         EditorGUI.BeginChangeCheck();
 
         for (int i = 0; i < m_Items.arraySize; i++)
         {
             var serializedProperty = m_Items.GetArrayElementAtIndex(i);
 
-            var item = settings.Items[i];
+            var item = m_Settings.Items[i];
             var id = serializedProperty.FindPropertyRelative("Id");
             var name = serializedProperty.FindPropertyRelative("Name");
             var price = serializedProperty.FindPropertyRelative("Price");
@@ -84,35 +91,83 @@ public class StoreSettingsEditor : UnityEditor.Editor
             }
         }
 
-        if (GUILayout.Button("Read CVS"))
+        if (GUILayout.Button("Read from Spreadsheet"))
         {
             ReadCvs();
         }
 
-        if (settings.Items.Any(x => !x.IsValid))
+        if (GUILayout.Button("Scan"))
+        {
+            string[] temp = AssetDatabase.GetAllAssetPaths();
+            var iconResults = new List<string>();
+            var materialResults = new List<string>();
+            var modelResults = new List<string>();
+            var animationControllers = new List<string>();
+
+            int startIndex;
+            int lastIndex;
+            int endIndex;
+
+            foreach (string s in temp)
+            {
+                if (!s.StartsWith("Assets/") || 
+                    (!s.Contains(".png") &&
+                    !s.Contains(".mat") && 
+                    !s.Contains(".prefab") &&
+                    !s.Contains(".controller")))
+                {
+                    continue;
+                }
+
+                startIndex = s.LastIndexOf("/");
+                lastIndex = s.LastIndexOf(".");
+                endIndex = lastIndex - startIndex - 1;
+
+                if (startIndex < 0 || endIndex < 0 || endIndex <= 0)
+                {
+                    continue;
+                }
+
+                var fileName = s.Substring(startIndex + 1, lastIndex - startIndex - 1);
+
+                if (s.Contains(".png"))
+                {
+                    if (m_Settings.Items.All(x => !x.Icon.name.Equals(fileName)))
+                    {
+                        iconResults.Add(s);
+                    }
+                }
+
+                else if (s.Contains(".mat") &&
+                        m_Settings.Items.Where(x => x.Material != null).All(x => !x.Material.name.Equals(fileName)))
+                {
+                    materialResults.Add(s);
+                }
+
+                else if (s.Contains(".prefab") &&
+                        m_Settings.Items.Where(x => x.IsPrefabValid).All(x => x.GetPotentialPrefabName() != s) &&
+                        s.Count(x => x == '_') >= 2)
+                {
+                    modelResults.Add(s);
+                }
+                else if (s.Contains(".controller") &&
+                    m_Settings.Items.Where(x => x.AnimatorController != null).All(x => !x.AnimatorController.name.Equals(fileName)))
+                {
+                    animationControllers.Add(s);
+                }
+            }
+        }
+
+        if (m_Settings.Items.Any(x => !x.IsValid))
         {
             GUI.enabled = false;
         }
         if (GUILayout.Button("Apply"))
         {
-            var storeObj = GameObject.Find("Store");
-            var store = storeObj.GetComponent<Store>();
-            GameObject prefab;
-
-            foreach (var item in settings.Items)
-            {
-                if (CanCreatePrefab(item, out prefab))
-                {
-                    store.UpdateItems(item, prefab);
-                }
-                else
-                {
-                    Debug.Log($"Unexpected! Prefab could not created for id: {item.Id}, name: {item.Name}");
-                }
-            }
+            Apply();
         }
 
-        if (settings.Items.Any(x => !x.IsValid))
+        if (m_Settings.Items.Any(x => !x.IsValid))
         {
             GUI.enabled = true;
         }
@@ -125,8 +180,7 @@ public class StoreSettingsEditor : UnityEditor.Editor
 
     private void ReadCvs()
     {
-        var settings = (target as StoreSettings);
-        settings.Items.Clear();
+        m_Settings.Items.Clear();
 
         var content = (TextAsset)Resources.Load("Contents", typeof(TextAsset));
 
@@ -154,14 +208,14 @@ public class StoreSettingsEditor : UnityEditor.Editor
                 }
 
                 item.Price = price;
-                path = $"{settings.IconPath}/{item.Name}.png";
+                path = $"{m_Settings.IconPath}/{item.Name}.png";
 
                 var sprite = AssetDatabase.LoadAssetAtPath(path, typeof(Sprite)) as Sprite;
-            
-                item.Id = settings.Items.Count;
+
+                item.Id = m_Settings.Items.Count;
                 item.Icon = sprite;
 
-                settings.Items.Add(item);
+                m_Settings.Items.Add(item);
             }
         }
     }
@@ -176,18 +230,16 @@ public class StoreSettingsEditor : UnityEditor.Editor
             return false;
         }
 
-        var settings = (target as StoreSettings);
-
         var name = pair.ToString();
 
-        if (settings.ModelInfos.Any(x => x.Name == name))
+        if (m_Settings.ModelInfos.Any(x => x.Name == name))
         {
-            prefab = settings.ModelInfos.FirstOrDefault(x => x.Name == name).Prefab;
+            prefab = m_Settings.ModelInfos.FirstOrDefault(x => x.Name == name).Prefab;
         }
         else
         {
             //create prefab
-            var path = $"{settings.PrefabPath}/{pair}.prefab";
+            var path = $"{m_Settings.PrefabPath}/{pair}.prefab";
             var sceneObject = Instantiate(item.Model);
 
             //Set collider
@@ -220,9 +272,27 @@ public class StoreSettingsEditor : UnityEditor.Editor
             DestroyImmediate(sceneObject);
 
             var modelInfo = new ModelInfo(pair, prefab);
-            settings.ModelInfos.Add(modelInfo);
+            m_Settings.ModelInfos.Add(modelInfo);
         }
 
         return true;
     }
+
+    private void Apply()
+    {
+        GameObject prefab;
+
+        foreach (var item in m_Settings.Items)
+        {
+            if (CanCreatePrefab(item, out prefab))
+            {
+                m_Store.UpdateItems(item, prefab);
+            }
+            else
+            {
+                Debug.Log($"Unexpected! Prefab could not created for id: {item.Id}, name: {item.Name}");
+            }
+        }
+    }
+
 }

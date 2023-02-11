@@ -49,4 +49,9 @@ public class StoreSettingsItem
 
         return sb.ToString();
     }
+
+    public string GetPotentialPrefabName()
+    {
+        return $"{Model.name}_{Material?.name ?? string.Empty}_{AnimatorController?.name ?? string.Empty}";
+    }
 }
