@@ -16,5 +16,13 @@ public class StoreSettings : ScriptableObject
 
     public string IconPath => @"Assets/1_Graphics/Store";
     public string PrefabPath => @"Assets/2_Prefabs/CharacterPrefabs";
+
+    public void UpdateIds()
+    {
+        for (int i = 0; i < Items.Count; i++)
+        {
+            Items[i].Id = i;
+        }
+    }
 }
 

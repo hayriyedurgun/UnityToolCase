@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 [CustomEditor(typeof(StoreSettings))]
@@ -19,9 +20,10 @@ public class StoreSettingsEditor : UnityEditor.Editor
     private StoreSettings m_Settings;
     private bool m_IsScanUpdate;
 
-    private List<string> m_Materials;
-    private List<string> m_Models;
-    private List<string> m_AnimationControllers;
+    private List<string> m_Icons = new List<string>();
+    private List<string> m_Materials = new List<string>();
+    private List<string> m_Models = new List<string>();
+    private List<string> m_AnimationControllers = new List<string>();
 
     public void OnEnable()
     {
@@ -58,7 +60,15 @@ public class StoreSettingsEditor : UnityEditor.Editor
             GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout);
             foldoutStyle.normal.textColor = item.IsValid ? Color.white : Color.red;
 
-            serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, $"Item#{item.Id}", foldoutStyle);
+            EditorGUILayout.BeginHorizontal("box");
+            {
+                serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, $"Item#{item.Id}", foldoutStyle);
+                if (GUILayout.Button("\u2715", GUILayout.Width(22), GUILayout.Height(20)))
+                {
+                    Remove(item);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
 
             if (serializedProperty.isExpanded)
             {
@@ -102,14 +112,14 @@ public class StoreSettingsEditor : UnityEditor.Editor
             ReadCvs();
         }
 
-        if (GUILayout.Button("Scan"))
-        {
-            Scan();
-        }
-
         if (GUILayout.Button("Show Report"))
         {
             ShowReport();
+        }
+
+        if (GUILayout.Button("Create"))
+        {
+            Create();
         }
 
         if (m_Settings.Items.Any(x => !x.IsValid))
@@ -256,10 +266,10 @@ public class StoreSettingsEditor : UnityEditor.Editor
         }
 
         string[] temp = AssetDatabase.GetAllAssetPaths();
-        var iconResults = new List<string>();
-        m_Materials = new List<string>();
-        m_Models = new List<string>();
-        m_AnimationControllers = new List<string>();
+        m_Icons.Clear();
+        m_Materials.Clear();
+        m_Models.Clear();
+        m_AnimationControllers.Clear();
 
         int startIndex;
         int lastIndex;
@@ -285,13 +295,13 @@ public class StoreSettingsEditor : UnityEditor.Editor
                 continue;
             }
 
-            var fileName = s.Substring(startIndex + 1, lastIndex - startIndex - 1);
+            var fileName = s.Substring(startIndex + 1, endIndex);
 
             if (s.Contains(".png"))
             {
-                if (m_Settings.Items.All(x => !x.Icon.name.Equals(fileName)))
+                if (m_Settings.Items.Where(x => x.Icon != null).All(x => !x.Icon.name.Equals(fileName)))
                 {
-                    iconResults.Add(s);
+                    m_Icons.Add(s);
                 }
             }
 
@@ -320,12 +330,38 @@ public class StoreSettingsEditor : UnityEditor.Editor
     private void ShowReport()
     {
         var window = (ReportEditorWindow)EditorWindow.GetWindow(typeof(ReportEditorWindow));
-        if (!m_IsScanUpdate)
+
+        Scan();
+        window.Load(m_Materials, m_Models, m_AnimationControllers, m_Icons, this);
+        window.Show();
+    }
+
+    public void Create(Material mat = null, GameObject model = null, AnimatorController controller = null, Sprite icon = null)
+    {
+        if (mat != null ||
+            model != null ||
+            controller != null ||
+            icon != null)
         {
-            Scan();
+            m_IsScanUpdate = false;
         }
 
-        window.Load(m_Materials, m_Models, m_AnimationControllers);
-        window.Show();
+        var item = new StoreSettingsItem();
+        item.Id = m_Settings.Items.Count;
+        item.Icon = icon;
+        item.Material = mat;
+        item.Model = model;
+        item.AnimatorController = controller;
+
+        m_Settings.Items.Add(item);
+    }
+
+    private void Remove(StoreSettingsItem item)
+    {
+        if (m_Settings.Items.Contains(item))
+        {
+            m_Settings.Items.Remove(item);
+            m_Settings.UpdateIds();
+        }
     }
 }
